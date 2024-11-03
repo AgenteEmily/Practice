@@ -1,110 +1,135 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*
+struct Matrix {
+    int max;
+    int unit;
+    int current; // same as allocation
+};
 
-/* Declare dynamic arrays and global variables*/
+struct Matrix *P;         // For processes' maximum requests
+struct Matrix *resources; // For resource units
+int maxNumProcesses;
+int maxNumResources;      // number of resources
 
-/***********************************************************/
-/*void "PROCEDURE TO PRINT RESOURCE VECTOR"() {
-	/* declare local variables */
-	/* for loop: print each resource index */
-	/* for loop: print number of total units and available units of each resource index */
-	//return;
-//}
+void printMatrix();
+int enterParameters() {
+    printf("Enter total number of processes: ");
+    scanf("%d", &maxNumProcesses);
 
+    printf("Enter number of resources: ");
+    scanf("%d", &maxNumResources);
 
-/***************************************************************/
-/*void "PROCEDURE TO PRINT MATRIX"() { 
-	/* declare local variables */
-	/* for loop: print each resource index */
-	/* for each process: */
-		/* for each resource: */
-			/* print maximum number of units each process may request, is allocated, and needs from each resource */
-	//return;
-//}
+    int maxClaim[maxNumProcesses][maxNumResources]; // Declare a 2D array
+    int allocation[maxNumProcesses][maxNumResources];
+    int storingResources[maxNumResources];
+    int need[maxNumProcesses][maxNumResources];
 
+    // resources array:
+    printf("Enter number of units for resources (r0 to r2): ");
+    for(int i = 0; i < maxNumResources; i++){
+        scanf("%d", &storingResources[i]);
+    }
 
+    for (int i = 0; i < maxNumProcesses; i++) {
+        printf("Enter maximum number of units process p%d will request from each resource (r0 to r2): ", i);
+        for (int j = 0; j < maxNumResources; j++) {
+            //printf("Resource[%d][%d]: ", i, j);
+            scanf("%d", &maxClaim[i][j]);
+        }
+    }
 
-/****************************************************************/
-void enterParameters() {
+    for(int i = 0; i < maxNumProcesses; i++){
+        printf("Enter number of units of each resource (r0 to r2) allocated to process p%d: ", i);
+        for (int j = 0; j < maxNumResources; j++) {
+            scanf("%d", &allocation[i][j]);
+        }
+    }
 
-	printf("testing");
-	/* declare local variables */
-	/* prompt for number of processes and number of resources */
-	/* allocate memory for vectors and arrays: resource, available, max_claim, allocated, need */
-	/* for each resource, prompt for number of units, set resource and available vectors indices*/
-	/* for each process, for each resource, prompt for maximum number of units requested by process, update max_claim and need arrays */ 
-	/* for each process, for each resource, prompt for number of resource units allocated to process */
-	/* print resource vector, available vector, max_claim array, allocated array, need array */
-	//return;
+    for(int i = 0; i < maxNumProcesses; i++){
+        for (int j = 0; j < maxNumResources; j++) {
+            need[i][j] = maxClaim[i][j] - allocation[i][j]; 
+            //printf("need is: %d", need[i][j]);
+        }
+    }
+    
+    // Print out the array to confirm input 
+    //P = (struct Matrix *)calloc(maxNumProcesses, sizeof(struct Matrix));
+    //resources = (struct Matrix *)calloc(maxNumResources, sizeof(struct Matrix));
+
+    printMatrix(maxNumProcesses, maxNumResources, maxClaim, allocation, need);
+    return 0;
 }
 
 
-/********************************************************************/
-/*void "OPTION #2"() {
+void printMatrix(int maxNumProcesses, int maxNumResources, int maxClaim[][maxNumResources], int allocation[][maxNumResources], int need[][maxNumResources]) {
+    // Print header
+    printf("        Max Claim           Current         Potential\n");
+    printf("        ");
+    for (int i = 0; i < maxNumResources; i++) printf("r%d   ", i);
+    printf("\t");
+    for (int i = 0; i < maxNumResources; i++) printf("r%d   ", i);
+    printf("\t");
+    for (int i = 0; i < maxNumResources; i++) printf("r%d   ", i);
+    printf("\n------------------------------------------------------------\n");
 
-	/* declare local variables, including vector to indicate if process is safely sequenced and "num_sequenced" count*/
+    // Print each process's data
+    for (int i = 0; i < maxNumProcesses; i++) {
+        printf("p%d:    ", i);
 
-		
-	/* while not all processed are sequenced */
-		/* for each process */ 
-			/* if process has not been safely sequenced yet 8? 
-				/* for each resource */
-					/* check for safe sequencing by comparing process' need vector to available vector */
-	      			/* if each resource is available */
-					/* print message that process had been safely sequenced */
-					/* update number of available units of resource */
-					/* for each resource */
-						//free all resources allocated to process */
-						/* increment number of sequenced processes */
-//return;
-//}
+        // Print Max Claim values
+        for (int j = 0; j < maxNumResources; j++) {
+            printf("%d    ", maxClaim[i][j]);
+        }
 
+        printf("\t");
 
-/********************************************************************/
-/*void "OPTION #3"() {
-	/* check if vectors/array are not NULL--if so, free each vector/array */
-//	return;
-//}
+        // Print Current (Allocation) values
+        for (int j = 0; j < maxNumResources; j++) {
+            printf("%d    ", allocation[i][j]); 
+        }
 
+        for(int j = 0; j < maxNumResources; j++) {
+            printf("%d    ", need[i][j]);
+        }
+        printf("\n");
+    }
 
-int menu(){
-
-	int option;
-
-	printf("Banker's Algorithm\n");
-	printf("------------------\n");
-
-	printf("1) Enter parameters");
-	printf("2) Run the Banker's algorithm to determine a safe sequence");
-	printf("3) Quit program and free memory");
-
-	scanf("%d", &option);
-	return option; 
-
-	// return
 }
 
+int menu() {
+    int option;
+    printf("Banker's Algorithm\n");
+    printf("------------------\n");
+    printf("1) Enter parameters\n");
+    printf("2) Run the Banker's algorithm to determine a safe sequence\n");
+    printf("3) Quit program and free memory\n");
 
-/***************************************************************/
+    scanf("%d", &option);
+    return option;
+}
+
 int main() {
-
-	/* Declare local variables */
-	int selection;
-	selection = menu();
-
-	switch (selection)
-	{
-	case 1:
-		enterParameters(); /* code */
-		break;
-	default:
-		printf("Invalid option! Try it again.\n");
-		break;
-	}
-	
-	/* Until the user quits, print the menu, prompt for the menu choice, call the appropriate procedure */
-
-  return 0;
-} 
+    int selection;
+    while (1) {
+        selection = menu();
+        switch (selection) {
+        case 1:
+            enterParameters(); // Enter parameters
+            break;
+        case 2:
+            // Call your Banker's algorithm function here
+            break;
+        case 3:
+            // Free allocated memory before quitting
+            free(P);
+            free(resources);
+            printf("Memory freed. Exiting program.\n");
+            return 0;
+        default:
+            printf("Invalid option! Try it again.\n");
+            break;
+        }
+    }
+    return 0;
+}
